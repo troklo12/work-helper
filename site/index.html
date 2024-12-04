@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интеллектуальный помощник для анализа вакансий</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            background: #007bff;
+            color: #fff;
+            padding: 1rem;
+            text-align: center;
+            width: 100%;
+            position: relative;
+        }
+
+        .logo {
+            font-family: "Courier New", monospace;
+            font-size: 3em; /* Увеличенный размер шрифта */
+        }
+
+        .slogan {
+            font-style: italic;
+            margin: 0.5em 0;
+            font-size: 1.2em;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            padding: 1rem;
+            transition: transform 0.3s ease;
+            transform: translateX(-100%);
+            position: fixed;
+            height: 100%;
+            z-index: 1000;
+            overflow-y: auto; /* Позволяет прокручиваться по сайдбару */
+        }
+
+        .sidebar.active {
+            transform: translateX(0);
+        }
+
+        .sidebar h2 {
+            margin-top: 0;
+        }
+
+        .toggle-button {
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            font-weight: bold;
+            border: none;
+            padding: 0.5rem 1rem;
+            outline: none;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1100;
+        }
+
+        .close-button {
+            background: #d9534f;
+            color: white;
+            border: none;
+            padding: 0.5rem;
+            cursor: pointer;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .search-area {
+            margin: 2rem auto;
+            text-align: center;
+            flex-grow: 1;
+            padding-left: 270px; /* Отступ, чтобы избежать перекрытия с сайдбаром */
+        }
+
+        input,
+        select {
+            padding: 0.5rem;
+            margin: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            background: #28a745;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #218838;
+        }
+
+        .results-area {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 1rem;
+            padding: 1rem;
+            display: inline-block;
+            width: 300px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1rem;
+            background: #007bff;
+            color: white;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+            margin-top: auto;
+        }
+
+        .suitability {
+            font-weight: bold;
+            color: #007bff;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo">WH - Work Helper</div>
+        <div class="slogan">"Найдите свою идеальную работу с умом!"</div>
+    </header>
+
+    <button class="toggle-button" id="toggle-button">Фильтры</button>
+
+    <div class="sidebar" id="sidebar">
+        <button class="close-button" id="close-button">Закрыть</button>
+        <h2>Фильтры</h2>
+
+        <label for="job-title">Название вакансии:</label>
+        <input type="text" id="job-title" placeholder="Введите название вакансии" />
+
+        <label for="job-type">Тип занятости:</label>
+        <select id="job-type">
+            <option value="">Тип занятости</option>
+            <option value="full-time">Полная занятость</option>
+            <option value="part-time">Частичная занятость</option>
+            <option value="freelance">Фриланс</option>
+        </select>
+
+        <label for="schedule">График работы:</label>
+        <select id="schedule">
+            <option value="">Выберите график</option>
+            <option value="5/2">5/2</option>
+            <option value="2/2">2/2</option>
+            <option value="7/7">7/7</option>
+        </select>
+
+        <label for="faculty">Факультет:</label>
+        <select id="faculty">
+            <option value="">Выберите факультет</option>
+            <option value="ФМИАТ">ФМИАТ</option>
+            <option value="ГУМАНИТАРНЫЙ">ГУМАНИТАРНЫЙ</option>
+            <option value="МЕДИЦИНСКИЙ">МЕДИЦИНСКИЙ</option>
+            <option value="КУЛЬТУРНЫЙ">КУЛЬТУРНЫЙ</option>
+            <option value="ЮРИДИЧЕСКИЙ">ЮРИДИЧЕСКИЙ</option>
+        </select>
+
+        <label for="location">Местоположение:</label>
+        <select id="location">
+            <option value="">Выберите местоположение</option>
+            <option value="Москва">Москва</option>
+            <option value="Санкт-Петербург">Санкт-Петербург</option>
+            <option value="Новосибирск">Новосибирск</option>
+        </select>
+
+        <label for="salary-from">Зарплата от:</label>
+        <input type="number" id="salary-from" placeholder="Минимальная зарплата" />
+
+        <label for="salary-to">Зарплата до:</label>
+        <input type="number" id="salary-to" placeholder="Максимальная зарплата" />
+
+        <label for="skills">Навыки:</label>
+        <select id="skills" multiple>
+            <!-- Уникальные навыки будут добавлены в этот список динамически -->
+        </select>
+
+        <label for="direction">Направление:</label>
+        <select id="direction">
+            <option value="">Выберите направление</option>
+            <option value="МОАИС">МОАИС</option>
+            <option value="ПРИ">ПРИ</option>
+            <option value="ПМ">ПМ</option>
+            <option value="ИС">ИС</option>
+            <option value="ИБ">ИБ</option>
+            <option value="КБ">КБ</option>
+        </select>
+
+        <label for="sort">Сортировка по:</label>
+        <select id="sort">
+            <option value="date">По дате</option>
+            <option value="title">По названию</option>
+            <option value="salary-asc">По зарплате (возрастание)</option>
+            <option value="salary-desc">По зарплате (убывание)</option>
+        </select>
+
+        <button id="search-button">Поиск</button>
+    </div>
+
+    <main class="search-area">
+        <section id="results" class="results-area"></section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Интеллектуальный помощник для анализа вакансий</p>
+    </footer>
+
+    <script>
+        const jobs = [
+            { title: "Разработчик JavaScript", company: "Компания A", description: "Отличная вакансия для опытного разработчика JavaScript.", type: "full-time", location: "Москва", salary: 120000, skills: ['JavaScript', 'HTML', 'CSS'], direction: "МОАИС", suitability: 9, schedule: "5/2", faculty: "ФМИАТ", date: "2024-03-01" },
+            { title: "Инженер по тестированию", company: "Компания B", description: "Ищем инженера по тестированию для нашей команды.", type: "part-time", location: "Санкт-Петербург", salary: 80000, skills: ['Работа в команде', 'Тестирование'], direction: "ПРИ", suitability: 7, schedule: "2/2", faculty: "ГУМАНИТАРНЫЙ", date: "2024-02-15" },
+            { title: "Фронтенд разработчик", company: "Компания C", description: "Требуется фронтенд разработчик для работы с React.", type: "freelance", location: "Новосибирск", salary: 60000, skills: ['React', 'CSS', 'JavaScript'], direction: "МОАИС", suitability: 8, schedule: "5/2", faculty: "КУЛЬТУРНЫЙ", date: "2024-01-20" },
+            { title: "Системный администратор", company: "Компания D", description: "Полная занятость для системного администратора.", type: "full-time", location: "Москва", salary: 150000, skills: ['Работа с серверами', 'Сети'], direction: "ПМ", suitability: 6, schedule: "7/7", faculty: "ЮРИДИЧЕСКИЙ", date: "2024-03-10" },
+            { title: "Бэкенд разработчик", company: "Компания E", description: "Ищем бэкенд разработчика на PHP.", type: "full-time", location: "Москва", salary: 130000, skills: ['PHP', 'MySQL'], direction: "ИС", suitability: 8, schedule: "5/2", faculty: "МЕДИЦИНСКИЙ", date: "2024-03-15" },
+            { title: "Разработчик мобильных приложений", company: "Компания F", description: "Требуется разработчик мобильных приложений на Flutter.", type: "freelance", location: "Санкт-Петербург", salary: 80000, skills: ['Flutter', 'Dart'], direction: "КБ", suitability: 8, schedule: "2/2", faculty: "ГУМАНИТАРНЫЙ", date: "2024-02-25" },
+            { title: "Специалист по кибербезопасности", company: "Компания G", description: "Ищем специалиста по кибербезопасности.", type: "full-time", location: "Новосибирск", salary: 170000, skills: ['Кибербезопасность', 'Анализ уязвимостей'], direction: "ИБ", suitability: 10, schedule: "7/7", faculty: "ФМИАТ", date: "2024-01-30" },
+            { title: "Аналитик данных", company: "Компания H", description: "Требуется аналитик данных для анализа больших данных.", type: "part-time", location: "Москва", salary: 90000, skills: ['Python', 'SQL'], direction: "МОАИС", suitability: 9, schedule: "5/2", faculty: "КУЛЬТУРНЫЙ", date: "2024-03-05" },
+            { title: "DevOps инженер", company: "Компания I", description: "Ищем DevOps инженера для автоматизации процессов.", type: "full-time", location: "Санкт-Петербург", salary: 140000, skills: ['Docker', 'Kubernetes'], direction: "ПМ", suitability: 8, schedule: "5/2", faculty: "ИЗ ТЕХНОЛОГИЙ", date: "2024-01-19" },
+            { title: "Инженер по искусственному интеллекту", company: "Компания J", description: "Требуется инженер по AI для разработки новейших алгоритмов.", type: "full-time", location: "Москва", salary: 200000, skills: ['Machine Learning', 'Python'], direction: "ИС", suitability: 10, schedule: "2/2", faculty: "МЕДИЦИНСКИЙ", date: "2024-02-28" },
+            { title: "Разработчик C#", company: "Компания K", description: "Разыскиваем разработчика C# для проекта в сфере финансов.", type: "full-time", location: "Москва", salary: 120000, skills: ['C#', 'ASP.NET'], direction: "ПРИ", suitability: 7, schedule: "5/2", faculty: "ЮРИДИЧЕСКИЙ", date: "2024-03-01" },
+            { title: "Специалист по тестированию безопасности", company: "Компания L", description: "Ищем специалиста по тестированию безопасности ПО.", type: "full-time", location: "Новосибирск", salary: 110000, skills: ['Тестирование', 'Анализ'], direction: "ПМ", suitability: 8, schedule: "7/7", faculty: "ФМИАТ", date: "2024-01-25" },
+            { title: "Инженер по базам данных", company: "Компания M", description: "Ищем инженера по базам данных для работы с SQL и NoSQL.", type: "part-time", location: "Санкт-Петербург", salary: 95000, skills: ['SQL', 'NoSQL'], direction: "ИС", suitability: 9, schedule: "5/2", faculty: "ГУМАНИТАРНЫЙ", date: "2024-03-03" },
+            { title: "Web-разработчик", company: "Компания N", description: "Необходим HTML/CSS разработчик для улучшения текущего проекта.", type: "freelance", location: "Москва", salary: 65000, skills: ['HTML', 'CSS', 'JavaScript'], direction: "МОАИС", suitability: 8, schedule: "5/2", faculty: "КУЛЬТУРНЫЙ", date: "2024-02-10" },
+            { title: "Архитектор ПО", company: "Компания O", description: "Требуется архитектор ПО для проектирования высоконагруженных систем.", type: "full-time", location: "Москва", salary: 300000, skills: ['Архитектура', 'Системный анализ'], direction: "ИБ", suitability: 10, schedule: "5/2", faculty: "ЮРИДИЧЕСКИЙ", date: "2024-01-18" },
+            { title: "SEO специалист", company: "Компания P", description: "Требуется SEO специалист для оптимизации сайта.", type: "part-time", location: "Санкт-Петербург", salary: 70000, skills: ['SEO', 'Анализ'], direction: "КБ", suitability: 7, schedule: "2/2", faculty: "ФМИАТ", date: "2024-02-12" },
+            // Новые профессии
+            { title: "Специалист по машинному обучению", company: "Компания Q", description: "Ищем специалиста по машинному обучению для разработки новых технологий.", type: "full-time", location: "Москва", salary: 150000, skills: ['Python', 'Machine Learning'], direction: "МОАИС", suitability: 9, schedule: "5/2", faculty: "ФМИАТ", date: "2024-01-15" },
+            { title: "UX/UI дизайнер", company: "Компания R", description: "Требуется UX/UI дизайнер для создания пользовательских интерфейсов.", type: "freelance", location: "Санкт-Петербург", salary: 80000, skills: ['UX Design', 'UI Design'], direction: "КБ", suitability: 8, schedule: "2/2", faculty: "ГУМАНИТАРНЫЙ", date: "2024-02-05" },
+            { title: "Экономист", company: "Компания S", description: "Ищем экономиста для анализа финансовых потоков.", type: "part-time", location: "Новосибирск", salary: 70000, skills: ['Финансовый анализ', 'Экономика'], direction: "ЮРИДИЧЕСКИЙ", suitability: 6, schedule: "5/2", faculty: "ЮРИДИЧЕСКИЙ", date: "2024-02-28" },
+            { title: "Менеджер по продажам ПО", company: "Компания T", description: "Необходим менеджер по продажам в область ПО.", type: "full-time", location: "Москва", salary: 95000, skills: ['Продажи', 'Обслуживание клиентов'], direction: "ИБ", suitability: 8, schedule: "5/2", faculty: "ГУМАНИТАРНЫЙ", date: "2024-01-20" },
+            { title: "Специалист по PR", company: "Компания U", description: "Требуется PR специалист для продвижения компании.", type: "part-time", location: "Санкт-Петербург", salary: 60000, skills: ['PR', 'Маркетинг'], direction: "КУК", suitability: 7, schedule: "2/2", faculty: "КУЛЬТУРНЫЙ", date: "2024-03-04" },
+            { title: "Специалист по безопасности данных", company: "Компания V", description: "Ищем специалиста по безопасности данных для защиты информации.", type: "full-time", location: "Москва", salary: 160000, skills: ['Кибербезопасность', 'Шифрование'], direction: "КБ", suitability: 10, schedule: "5/2", faculty: "ФМИАТ", date: "2024-01-10" },
+            { title: "Идеолог инновационного развития", company: "Компания W", description: "Предлагаем должность для идеолога инновационного развития.", type: "freelance", location: "Новосибирск", salary: 100000, skills: ['Стратегическое мышление', 'Идеи'], direction: "ИБ", suitability: 9, schedule: "7/7", faculty: "ГУМАНИТАРНЫЙ", date: "2024-02-15" },
+            { title: "Специалист по контенту", company: "Компания X", description: "Требуется специалист по созданию контента для сайта.", type: "part-time", location: "Санкт-Петербург", salary: 50000, skills: ['Контент', 'Копирайтинг'], direction: "ГУМАНИТАРНЫЙ", suitability: 7, schedule: "5/2", faculty: "ЮРИДИЧЕСКИЙ", date: "2024-02-10" },
+            { title: "Координатор проектов", company: "Компания Y", description: "Ищем координатора проектов для обеспечения выполнения задач.", type: "full-time", location: "Москва", salary: 110000, skills: ['Управление проектами', 'Коммуникация'], direction: "КБ", suitability: 8, schedule: "5/2", faculty: "ФМИАТ", date: "2024-03-02" },
+            { title: "Финансовый аналитик", company: "Компания Z", description: "Требуется финансовый аналитик для анализа бюджетов.", type: "part-time", location: "Санкт-Петербург", salary: 75000, skills: ['Анализ', 'Финансы'], direction: "ЮРИДИЧЕСКИЙ", suitability: 6, schedule: "2/2", faculty: "МЕДИЦИНСКИЙ", date: "2024-01-29" }
+        ];
+
+        // Собираем уникальные навыки для выпадающего списка
+        const uniqueSkills = [...new Set(jobs.flatMap(job => job.skills))];
+        const skillsSelect = document.getElementById('skills');
+        uniqueSkills.forEach(skill => {
+            const option = document.createElement('option');
+            option.value = skill;
+            option.text = skill;
+            skillsSelect.appendChild(option);
+        });
+
+        document.getElementById("search-button").addEventListener("click", function () {
+            const jobTitle = document.getElementById("job-title").value.toLowerCase();
+            const jobType = document.getElementById("job-type").value;
+            const jobSchedule = document.getElementById("schedule").value;
+            const faculty = document.getElementById("faculty").value;
+            const location = document.getElementById("location").value;
+            const salaryFrom = parseInt(document.getElementById("salary-from").value) || 0;
+            const salaryTo = parseInt(document.getElementById("salary-to").value) || Infinity; // бесконечность по умолчанию
+            const selectedSkills = Array.from(document.getElementById('skills').selectedOptions).map(option => option.value);
+            const direction = document.getElementById("direction").value;
+            const sortOrder = document.getElementById("sort").value;
+
+            let resultsArea = document.getElementById("results");
+            resultsArea.innerHTML = ""; // Очистка предыдущих результатов
+
+            let filteredJobs = jobs.filter(job => {
+                const matchesTitle = job.title.toLowerCase().includes(jobTitle);
+                const matchesType = jobType ? job.type === jobType : true;
+                const matchesSchedule = jobSchedule ? job.schedule === jobSchedule : true;
+                const matchesFaculty = faculty ? job.faculty === faculty : true;
+                const matchesLocation = location ? job.location === location : true;
+                const matchesSalary = job.salary >= salaryFrom && job.salary <= salaryTo;
+                const matchesSkills = selectedSkills.length === 0 || selectedSkills.some(skill => job.skills.includes(skill));
+                const matchesDirection = direction ? job.direction === direction : true;
+
+                return matchesTitle && matchesType && matchesSchedule && matchesFaculty && matchesLocation && matchesSalary && matchesSkills && matchesDirection;
+            });
+
+            // Sorting
+            if (sortOrder === "date") {
+                filteredJobs.sort((a, b) => new Date(b.date) - new Date(a.date)); // Сортировка по дате (последние обновления первыми)
+            } else if (sortOrder === "title") {
+                filteredJobs.sort((a, b) => a.title.localeCompare(b.title)); // Сортировка по названию
+            } else if (sortOrder === "salary-asc") {
+                filteredJobs.sort((a, b) => a.salary - b.salary); // Сортировка по зарплате по возрастанию
+            } else if (sortOrder === "salary-desc") {
+                filteredJobs.sort((a, b) => b.salary - a.salary); // Сортировка по зарплате по убыванию
+            }
+
+            if (filteredJobs.length > 0) {
+                filteredJobs.forEach(result => {
+                    const card = document.createElement("div");
+                    card.classList.add("card");
+                    card.innerHTML = `<h3>${result.title}</h3>
+                                      <p><strong>${result.company}</strong></p>
+                                      <p>${result.description}</p>
+                                      <p class="suitability">Подходит вам: ${result.suitability}/10</p>
+                                      <p><strong>График работы: ${result.schedule}</strong></p>
+                                      <p><strong>Факультет: ${result.faculty}</strong></p>
+                                      <p><strong>Зарплата: ${result.salary} р.</strong></p>
+                                      <p><strong>Дата обновления: ${result.date}</strong></p>`;
+                    resultsArea.appendChild(card);
+                });
+            } else {
+                resultsArea.innerHTML = "<p>Ничего не найдено. Попробуйте изменить параметры поиска.</p>";
+            }
+        });
+
+        // Toggle sidebar
+        document.getElementById("toggle-button").addEventListener("click", function () {
+            const sidebar = document.getElementById("sidebar");
+            sidebar.classList.toggle("active");
+        });
+
+        // Close sidebar
+        document.getElementById("close-button").addEventListener("click", function () {
+            const sidebar = document.getElementById("sidebar");
+            sidebar.classList.remove("active");
+        });
+    </script>
+</body>
+
+</html>
